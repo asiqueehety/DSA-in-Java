@@ -5,8 +5,8 @@ class Graph
 {
     int vx;
     int edge;
-    boolean mol;
-    boolean negcyc=false;
+    boolean mol=true;
+    boolean negcyc;
     ArrayList<ArrayList<Integer>> adjMat=new ArrayList<ArrayList<Integer>>();
     ArrayList<ArrayList<Pair<Integer,Integer>>> adjList=new ArrayList<ArrayList<Pair<Integer,Integer>>>();
     public Graph(int v,int e)
@@ -209,7 +209,7 @@ class Graph
                 for(int nbr=0;nbr<vx;nbr++)
                 {
                     int weight=adjMat.get(minDistNode).get(nbr);
-                    if(weight>0 && dist.get(minDistNode)+weight < dist.get(nbr))
+                    if(weight!=0 && dist.get(minDistNode)+weight < dist.get(nbr))
                     {
                         dist.set(nbr,dist.get(minDistNode)+weight);
                     }
@@ -250,7 +250,7 @@ class Graph
                 for(int i=0;i<vx;i++)
                 {
                     int weight=adjMat.get(curNode).get(i);
-                    if(weight>0)
+                    if(weight!=0)
                     {
                         int newDist=curDist+weight;
                         if(newDist < dist.get(i))
@@ -291,7 +291,7 @@ class Graph
             {
                 for(int j=0;j<vx;j++)
                 {
-                    if(adjMat.get(i).get(j)>0)
+                    if(adjMat.get(i).get(j)!=0)
                     {
                         Pair<Pair<Integer,Integer>,Integer> e=new Pair<Pair<Integer,Integer>,Integer>(new Pair<>(i,j),adjMat.get(i).get(j));
 
@@ -336,6 +336,7 @@ class Graph
             {
                 negcyc=true;
             }
+            else negcyc=false;
         }
         return dist;
     }
@@ -347,14 +348,11 @@ class Graph
 
 
 public class Main {
-    public static void main(String[] args) {
-        Graph g=new Graph(5,6,false);
-        g.d_addEdge(0,1,1);
-        g.d_addEdge(1,2,3);
-        g.d_addEdge(2,3,5);
-        g.d_addEdge(0,3,7);
-        g.d_addEdge(0,4,-8);
-        g.d_addEdge(4,2,-3);
+    public static void main(String[] args){
+        Graph g=new Graph(3,3);
+        g.d_addEdge(0,1,10);
+        g.d_addEdge(1,2,5);
+        g.d_addEdge(2,0,-16);
         g.show_graph();
         ArrayList<Integer> al1=g.bfs(0);
         ArrayList<Integer> al2=g.dfs(0);
@@ -377,7 +375,7 @@ public class Main {
         }
         System.out.println();
         System.out.print("Shortest distances (Dijkstra): ");
-        for (Integer integer : al5) {
+        for (Integer integer : al4) {
             System.out.print(integer + " ");
         }
         System.out.println();
