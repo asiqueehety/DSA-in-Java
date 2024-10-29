@@ -1,4 +1,3 @@
-import java.sql.SQLOutput;
 import java.util.*;
 import javafx.util.*;
 
@@ -7,6 +6,7 @@ class Graph
     int vx;
     int edge;
     boolean mol;
+    boolean negcyc=false;
     ArrayList<ArrayList<Integer>> adjMat=new ArrayList<ArrayList<Integer>>();
     ArrayList<ArrayList<Pair<Integer,Integer>>> adjList=new ArrayList<ArrayList<Pair<Integer,Integer>>>();
     public Graph(int v,int e)
@@ -44,7 +44,7 @@ class Graph
                 adjMat.add(al);
             }
         }
-        if(mol)
+        else
         {
             for(int i=0;i<vx;i++)
             {
@@ -60,7 +60,7 @@ class Graph
             adjMat.get(s).set(d,w);
             adjMat.get(d).set(s,w);
         }
-        if(mol)
+        else
         {
             adjList.get(s).add(new Pair<>(d,w));
             adjList.get(d).add(new Pair<>(s,w));
@@ -72,7 +72,7 @@ class Graph
         {
             adjMat.get(s).set(d,w);
         }
-        if(mol)
+        else
         {
             adjList.get(s).add(new Pair<>(d,w));
         }
@@ -90,7 +90,7 @@ class Graph
                 System.out.println();
             }
         }
-        if(mol)
+        else
         {
             int i=0;
             for (ArrayList<Pair<Integer,Integer>> ap: adjList)
@@ -130,7 +130,7 @@ class Graph
                     }
                 }
             }
-            if(mol)
+            else
             {
                 for(int i=0;i<adjList.get(cur).size();i++)
                 {
@@ -169,7 +169,7 @@ class Graph
                     }
                 }
             }
-            if(mol)
+            else
             {
                 for(int i=0;i<adjList.get(cur).size();i++)
                 {
@@ -215,7 +215,7 @@ class Graph
                     }
                 }
             }
-            if(mol)
+            else
             {
                 for(Pair<Integer,Integer> nbr: adjList.get(minDistNode))
                 {
@@ -261,7 +261,7 @@ class Graph
                     }
                 }
             }
-            if(mol)
+            else
             {
                 for(Pair<Integer,Integer> nbr : adjList.get(curNode))
                 {
@@ -280,6 +280,65 @@ class Graph
         return dist;
     }
     //bellman ford
+    public ArrayList<Integer> bellman_ford(int src)
+    {
+        ArrayList<Integer> dist= new ArrayList<Integer>(Collections.nCopies(vx,Integer.MAX_VALUE));
+        dist.set(src,0);
+        ArrayList<Pair<Pair<Integer,Integer>,Integer>> edge_list= new ArrayList<Pair<Pair<Integer,Integer>,Integer>>();
+        if(!mol)
+        {
+            for(int i=0;i<vx;i++)
+            {
+                for(int j=0;j<vx;j++)
+                {
+                    if(adjMat.get(i).get(j)>0)
+                    {
+                        Pair<Pair<Integer,Integer>,Integer> e=new Pair<Pair<Integer,Integer>,Integer>(new Pair<>(i,j),adjMat.get(i).get(j));
+
+                        edge_list.add(e);
+                    }
+                }
+            }
+        }
+        else
+        {
+            for(int i=0;i<vx;i++)
+            {
+                for(var p:adjList.get(i))
+                {
+                    Pair<Pair<Integer,Integer>,Integer> e=new Pair<Pair<Integer,Integer>,Integer>(new Pair<>(i,p.getKey()),p.getValue());
+
+                    edge_list.add(e);
+                }
+            }
+        }
+        for(int i=0;i<vx-1;i++)
+        {
+            for(var uvw:edge_list)
+            {
+                int u=uvw.getKey().getKey();
+                int v=uvw.getKey().getValue();
+                int w=uvw.getValue();
+
+                if(dist.get(u) != Integer.MAX_VALUE && dist.get(u)+w < dist.get(v))
+                {
+                    dist.set(v,dist.get(u)+w);
+                }
+            }
+        }
+        for(var uvw:edge_list)
+        {
+            int u=uvw.getKey().getKey();
+            int v=uvw.getKey().getValue();
+            int w=uvw.getValue();
+
+            if(dist.get(u) != Integer.MAX_VALUE && dist.get(u)+w < dist.get(v))
+            {
+                negcyc=true;
+            }
+        }
+        return dist;
+    }
     //floydwarshall
     //johnson
     //kruskal
@@ -294,13 +353,14 @@ public class Main {
         g.d_addEdge(1,2,3);
         g.d_addEdge(2,3,5);
         g.d_addEdge(0,3,7);
-        g.d_addEdge(0,4,8);
-        g.d_addEdge(4,2,3);
+        g.d_addEdge(0,4,-8);
+        g.d_addEdge(4,2,-3);
         g.show_graph();
         ArrayList<Integer> al1=g.bfs(0);
         ArrayList<Integer> al2=g.dfs(0);
         ArrayList<Integer> al3=g.dijkstra_pq(0);
         ArrayList<Integer> al4=g.dijkstra(0);
+        ArrayList<Integer> al5=g.bellman_ford(0);
         System.out.print("BFS: ");
         for (Integer integer : al1) {
             System.out.print(integer + " ");
@@ -317,9 +377,15 @@ public class Main {
         }
         System.out.println();
         System.out.print("Shortest distances (Dijkstra): ");
-        for (Integer integer : al4) {
+        for (Integer integer : al5) {
             System.out.print(integer + " ");
         }
         System.out.println();
+        System.out.print("Shortest distances (Bellman_Ford): ");
+        for (Integer integer : al5) {
+            System.out.print(integer + " ");
+        }
+        System.out.println();
+        System.out.println(g.negcyc);
     }
 }
