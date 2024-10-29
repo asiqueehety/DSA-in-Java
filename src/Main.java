@@ -9,7 +9,24 @@ class Graph
     boolean mol;
     ArrayList<ArrayList<Integer>> adjMat=new ArrayList<ArrayList<Integer>>();
     ArrayList<ArrayList<Pair<Integer,Integer>>> adjList=new ArrayList<ArrayList<Pair<Integer,Integer>>>();
-
+    public Graph(int v,int e)
+    {
+        vx=v;
+        edge=e;
+        for(int i=0;i<vx;i++)
+        {
+            ArrayList<Integer> al=new ArrayList<Integer>();
+            for(int j=0;j<vx;j++)
+            {
+                al.add(0);
+            }
+            adjMat.add(al);
+        }
+        for(int i=0;i<vx;i++)
+        {
+            adjList.add(new ArrayList<Pair<Integer,Integer>>());
+        }
+    }
     public Graph(int v,int e, boolean ml)
     {
         vx=v;
@@ -168,11 +185,104 @@ class Graph
         return node;
     }
     //dijkstra
-    //bellmanford
+    public ArrayList<Integer> dijkstra(int src)
+    {
+        ArrayList<Integer> dist=new ArrayList<>(Collections.nCopies(vx,Integer.MAX_VALUE));
+        dist.set(src, 0);
+        ArrayList<Boolean> vis=new ArrayList<>(Collections.nCopies(vx, false));
+
+        for(int i=0;i<vx;i++)
+        {
+            int minDistNode = -1;
+            for(int j=0;j<vx;j++)
+            {
+                if(!vis.get(j) && (minDistNode==-1 || dist.get(j) < dist.get(minDistNode)))
+                {
+                    minDistNode=j;
+                }
+            }
+            if(dist.get(minDistNode)==Integer.MAX_VALUE){break;}
+            vis.set(minDistNode, true);
+
+            if(!mol)
+            {
+                for(int nbr=0;nbr<vx;nbr++)
+                {
+                    int weight=adjMat.get(minDistNode).get(nbr);
+                    if(weight>0 && dist.get(minDistNode)+weight < dist.get(nbr))
+                    {
+                        dist.set(nbr,dist.get(minDistNode)+weight);
+                    }
+                }
+            }
+            if(mol)
+            {
+                for(Pair<Integer,Integer> nbr: adjList.get(minDistNode))
+                {
+                    int nbrNode= nbr.getKey();
+                    int weight= nbr.getValue();
+                    if(dist.get(minDistNode)+weight < dist.get(nbrNode))
+                    {
+                        dist.set(nbrNode, dist.get(minDistNode)+weight);
+                    }
+                }
+            }
+        }
+        return dist;
+    }
+    //dijkstra with priority queue
+    public ArrayList<Integer> dijkstra_pq(int src)
+    {
+        ArrayList<Integer> dist=new ArrayList<Integer>(Collections.nCopies(vx,Integer.MAX_VALUE));
+        dist.set(src,0);
+        PriorityQueue<Pair<Integer,Integer>> pq= new PriorityQueue<>((a,b) -> a.getKey() - b.getKey());
+        pq.add(new Pair<>(0,src));
+
+        while(!pq.isEmpty())
+        {
+            Pair<Integer,Integer> cur=pq.poll();
+            int curDist=cur.getKey();
+            int curNode=cur.getValue();
+
+            if(curDist > dist.get(curNode)){continue;}
+            if(!mol)
+            {
+                for(int i=0;i<vx;i++)
+                {
+                    int weight=adjMat.get(curNode).get(i);
+                    if(weight>0)
+                    {
+                        int newDist=curDist+weight;
+                        if(newDist < dist.get(i))
+                        {
+                            dist.set(i,newDist);
+                            pq.add(new Pair<>(newDist,i));
+                        }
+                    }
+                }
+            }
+            if(mol)
+            {
+                for(Pair<Integer,Integer> nbr : adjList.get(curNode))
+                {
+                    int nxtNode=nbr.getKey();
+                    int weight=nbr.getValue();
+                    int newDist=curDist+weight;
+
+                    if(newDist<dist.get(nxtNode))
+                    {
+                        dist.set(nxtNode, newDist);
+                        pq.add(new Pair<>(newDist,nxtNode));
+                    }
+                }
+            }
+        }
+        return dist;
+    }
+    //bellman ford
     //floydwarshall
     //johnson
     //kruskal
-
 }
 
 
@@ -189,6 +299,8 @@ public class Main {
         g.show_graph();
         ArrayList<Integer> al1=g.bfs(0);
         ArrayList<Integer> al2=g.dfs(0);
+        ArrayList<Integer> al3=g.dijkstra_pq(0);
+        ArrayList<Integer> al4=g.dijkstra(0);
         System.out.print("BFS: ");
         for (Integer integer : al1) {
             System.out.print(integer + " ");
@@ -198,5 +310,16 @@ public class Main {
         for (Integer integer : al2) {
             System.out.print(integer + " ");
         }
+        System.out.println();
+        System.out.print("Shortest distances (Dijkstra PQ): ");
+        for (Integer integer : al3) {
+            System.out.print(integer + " ");
+        }
+        System.out.println();
+        System.out.print("Shortest distances (Dijkstra): ");
+        for (Integer integer : al4) {
+            System.out.print(integer + " ");
+        }
+        System.out.println();
     }
 }
